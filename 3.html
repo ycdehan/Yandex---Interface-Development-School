@@ -1,0 +1,100 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Popup - Чураков Юрий</title>
+<style>
+
+.popup-overlay {
+  position: fixed;
+  top: 0; left: 0;
+  display: table;
+  opacity: 0;
+  transition: .3s opacity;
+  visibility: hidden;
+  height: 100%;
+  width: 100%;
+  background: rgba(0,0,0,.7);
+  cursor: pointer;
+}
+
+.popup-overlay .popup-container {
+  display: table-cell;
+  vertical-align: middle;
+  margin: auto auto;
+  padding: 0 25px;
+}
+
+.popup-overlay .popup-container .popup-content {
+  background: #FFF !important;
+  width: auto;
+  max-width: 700px;
+  margin: 0 auto;
+  display: table;
+  padding: 25px;
+  cursor: default;
+  position: relative;
+}
+
+.popup-overlay .popup-container .popup-content img {max-width: 100%; height: auto;}
+.popup-close {font-family: sans-serif; font-size: 150%; text-align: right; position: absolute;
+  right: 25px;
+  top: 15px; text-decoration: none;}
+
+#popup h1 {
+  position: relative;
+  font-size: 130%;
+  text-transform: uppercase;
+  color: #000;
+}
+
+</style>
+</head>
+
+<body>
+
+<div id="popup" class="popup-overlay">
+
+  <div class="popup-container">
+
+      <div class="popup-content">
+        <a href="#" class="popup-close">&times;</a>
+        <h1>Wussup</h1>
+        <p>Многие думают, что Lorem Ipsum - взятый с потолка псевдо-латинский набор слов, но это не совсем так. Его корни уходят в один фрагмент классической латыни 45 года н.э., то есть более двух тысячелетий назад. Ричард МакКлинток, профессор латыни из колледжа Hampden-Sydney, штат Вирджиния, взял одно из самых странных слов в Lorem Ipsum, "consectetur", и занялся его поисками в классической латинской литературе.</p>
+      </div>
+
+  </div>
+
+</div>
+
+<a href="#" onclick="document.getElementById('popup').style.visibility='visible'; document.getElementById('popup').style.opacity='1';">Show popup</a>
+
+
+<script>
+window.onkeyup = okno; // ESC key
+document.getElementById('popup').onclick = okno; // click
+
+function okno(e) {
+  var container = document.getElementsByClassName("popup-container");
+  if (!isContained(container[0], e.target) || (e.target.className == 'popup-close')|| e.keyCode==27) { // clicked outside the popup, clicked close or ESC-key pressed
+    document.getElementById('popup').style.opacity='0';
+    document.getElementById('popup').style.visibility='hidden';
+  }
+}
+
+function isContained(parent, child) {
+
+     var node = child.parentNode;
+     while (node != null) {
+         if (node == parent) {
+             return true;
+         }
+         node = node.parentNode;
+     }
+     return false;
+}
+
+</script>
+
+</body>
+</html>
