@@ -1,0 +1,202 @@
+<!DOCTYPE HTML>
+<html>
+
+<head>
+
+<meta charset="utf-8">
+<title>D3.JS в действии - Чураков Юрий</title>
+
+<style>
+#container {text-align: center; padding-top: 30px;}
+p {padding-bottom: 60px; font-family: sans-serif; font-size: .9em;}
+svg { border: 4px solid #EEE;}
+</style>
+
+</head>
+
+<body>
+
+<div id="container">
+  <h1>D3.JS в действии</h1>
+  <p>Заведите мышь в окно, чтобы увидеть процесс в действии.</p>
+</div>
+
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.js"></script>
+<script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+<script>
+
+var svg;
+
+
+function test() {
+  var count = 280, // circles amount
+      maxX = 900,
+      maxY = 450,
+      radius = 8,
+      circles = [],
+      circlesSel,
+      circle,
+      i,
+      outter = 100, // defines the square area near cursor in pixels
+      accel = 9; // circle acceleration when in the area
+
+
+
+  svg = d3.select("#container").append("svg")
+    .attr("width", maxX)
+    .attr("height", maxY);
+
+  for (i = 0; i < count; i++) {
+      circle = {
+          x: maxX * Math.random(),
+          y: maxY * Math.random(),
+          radius: radius,
+          fill: 'red',
+          vx: (Math.round(Math.random()) * 2 - 1) * Math.random()*2, // velocity
+          vy: (Math.round(Math.random()) * 2 - 1) * Math.random()*2,
+          inzone1: false, // is a circle near cursor?
+          slowspeed: true, // is it accelerated or not?
+          orange_level: 0, // green color level in RGB
+          color_increment: Math.random()*3, // each circle has its own speed of color switching
+      };
+      circles.push(circle);
+  }
+
+  circlesSel = svg.selectAll("circle").data(circles);
+  circlesSel.enter().append("circle")
+    .attr({
+      "r": function (d) { return d.radius; },
+      "cx": function (d) { return d.x; },
+      "cy": function (d) { return d.y; },
+      
+    })
+    .style({
+      "fill": function (d) { return d.fill; },
+    });
+
+  d3.timer(step);
+
+  function step() {
+
+        var i, len, c, mx, my;
+
+        mx = parseInt(svg.attr("mx")); // mouse position
+        my = parseInt(svg.attr("my"));
+        
+        for (i = 0, len = count; i < len; i++) {
+        c = circles[i];
+
+        if (c.x >= maxX) c.x = 0; // box borders
+        if (c.y >= maxY) c.y = 0;
+        if (c.x < 0) c.x = maxX;
+        if (c.y < 0) c.y = maxY;
+
+        if (c.orange_level >= 250 || c.orange_level < 0) c.color_increment *= -1; // color management
+        c.orange_level += c.color_increment;
+
+
+        if (mx != -1 && my != -1) { // if mouse is in the box
+
+            if ( (Math.abs(parseInt(c.x-mx-2*c.radius)) <= outter) && ( (Math.abs(parseInt(c.y - my-2*c.radius)) <= outter) ) ) c.inzone1 = true;// if a circle is in the mouse area
+            else c.inzone1 = false; // circle left the zone
+
+        if (c.inzone1) { // circle in the zone:
+
+        /* 4 corners collisions + circle acceleration */
+        
+        if (c.x > mx  && c.y > my && c.slowspeed) {
+          checkSpeed(); // some circles are born to slow, so mouse pointer can reach them - fast em up!
+          c.vx = accel*Math.abs(c.vx);
+          c.vy = accel*Math.abs(c.vy);
+          c.slowspeed = false; // circle is going faster now!
+        }
+
+        if (c.x <= mx  && c.y <= my && c.slowspeed) {
+          checkSpeed();
+          c.vx = -accel * Math.abs(c.vx);
+          c.vy = -accel * Math.abs(c.vy);
+          c.slowspeed = false;
+        }
+
+        if (c.x <= mx  && c.y >my && c.slowspeed) {
+          checkSpeed();
+          c.vx = -accel * Math.abs(c.vx);
+          c.vy = accel*Math.abs(c.vy);
+          c.slowspeed = false;
+        }
+
+        if (c.x > mx  && c.y <= my && c.slowspeed) {
+          checkSpeed();
+          c.vx = accel*Math.abs(c.vx);
+          c.vy = -accel * Math.abs(c.vy);
+          c.slowspeed = false;
+        }    
+           
+        }
+       
+
+        }
+        else c.inzone1 = false; // if mouse is outside the box - circle left the zone
+
+        // restore the original speed when a circle leaves the area
+        if (c.slowspeed == false && c.inzone1 == false) {c.vx = c.vx / accel; c.vy = c.vy / accel; c.slowspeed = true;}
+
+        c.x += c.vx; // make a move
+        c.y += c.vy;
+
+        c.fill = 'rgb(255, ' + parseInt(c.orange_level) + ', 0)'; // change the color
+
+        function checkSpeed() {
+          if (Math.abs(c.vx) < 0.5 && Math.abs(c.vy) < 0.5) {
+            if (c.vx < 0) c.vx = -2;
+            if (c.vx > 0) c.vx = 2;
+            if (c.vy < 0) c.vy = -2;
+            if (c.vy > 0) c.vy = 2;
+          }
+        }
+
+}
+  circlesSel.attr({
+          "cx": function (d) { return d.x; },
+          "cy": function (d) { return d.y; },
+
+        }).style({"fill": function (d) { return d.fill; }});
+
+}
+
+
+
+
+}
+
+
+$(function () {
+  test();
+// mouseR();
+ svg.on('mousemove', function() {
+    
+      var coordinates = [0, 0];
+      coordinates = d3.mouse(this);
+      var mmx = coordinates[0];
+      var mmy = coordinates[1];
+
+      svg.attr("mx", mmx); // getting mouse position
+      svg.attr("my", mmy);
+
+    });
+
+  svg.on('mouseout', function() {
+    
+      var mmx = -1; // mouse has left the box
+      var mmy = -1;
+
+      svg.attr("mx", mmx);
+      svg.attr("my", mmy);
+
+    });
+
+});
+</script>
+
+</body>
+</html>
